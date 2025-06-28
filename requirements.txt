@@ -1,0 +1,17 @@
+# List of dependencies for the AI Coding Agent
+
+# For Google's Gemini API
+google-generativeai
+
+# For creating embeddings locally and interacting with the vector store
+chromadb
+sentence-transformers
+
+# For splitting text into chunks during indexing
+langchain
+
+# For rich terminal output (colors, markdown)
+rich
+
+# For progress bars during indexing
+tqdm

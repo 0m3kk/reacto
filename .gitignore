@@ -1,0 +1,5 @@
+.zed
+.venv
+chroma_db
+.ropeproject
+__pycache__
