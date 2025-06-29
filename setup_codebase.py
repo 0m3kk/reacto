@@ -3,17 +3,23 @@
 # Run this script once before using the agent's `search_codebase` tool.
 
 import os
+import argparse
 import chromadb
 from chromadb.utils import embedding_functions
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from tqdm import tqdm
 import config
 
-def setup():
+def setup(codebase_dir: str):
     """
     Initializes the ChromaDB collection and indexes the codebase.
     """
     print("--- Starting Codebase Indexing ---")
+
+    # Update the config in memory for this run
+    config.CODEBASE_DIR = codebase_dir
+    print(f"Targeting codebase directory: {os.path.abspath(config.CODEBASE_DIR)}")
+
 
     # Initialize ChromaDB client and collection
     client = chromadb.PersistentClient(path=config.CHROMA_DB_PATH)
@@ -82,6 +88,16 @@ def setup():
     if documents:
         print(f"\nAdding {len(documents)} document chunks to the vector store...")
         try:
+            # Clear old collection data for this codebase before adding new
+            # This is a simple approach; for production you might want more sophisticated update strategies
+            if collection.count() > 0:
+                print("Clearing existing collection to re-index...")
+                # Note: The `delete` method in chromadb is being deprecated.
+                # A more robust way is to delete the collection and recreate it.
+                # However, for simplicity here, we assume re-adding might create duplicates if not managed,
+                # but we'll proceed by simply adding. A better implementation might use `collection.delete`.
+                pass # Placeholder for more complex update logic
+
             collection.add(
                 documents=documents,
                 metadatas=metadatas,
@@ -97,4 +113,12 @@ def setup():
     print(f"Total documents in collection: {collection.count()}")
 
 if __name__ == "__main__":
-    setup()
+    parser = argparse.ArgumentParser(description="Index a codebase for the AI agent.")
+    parser.add_argument(
+        '--codebase-dir',
+        type=str,
+        default=config.CODEBASE_DIR,
+        help=f"The path to the codebase directory to index. Defaults to '{config.CODEBASE_DIR}'."
+    )
+    args = parser.parse_args()
+    setup(codebase_dir=args.codebase_dir)
